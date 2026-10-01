@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { supabase } from './main';
+import { supabase } from './lib/supabase';
 import { Wallet, LayoutDashboard, ListTodo, Upload, ArrowDownToLine, ShieldCheck, LogOut, UserPlus, LogIn, Menu, X, CheckCircle2, Clock3, AlertCircle } from 'lucide-react';
 
 const money = (n) => new Intl.NumberFormat('en-BD', { style: 'currency', currency: 'BDT', maximumFractionDigits: 2 }).format(Number(n || 0));
@@ -92,7 +92,7 @@ function Auth({ mode, setMode }) {
 }
 
 function Dashboard({profile,setView}) {
-  return <section className="content"><div className="hero-card"><div><span className="eyebrow">YOUR WALLET</span><div className="balance">{money(profile?.wallet_balance)}</div><p>Available balance</p></div><button className="light-btn" onClick={()=>setView('withdraw')}>Withdraw funds <ArrowDownToLine size={16}/></button></div><div className="grid3"><Stat title="Wallet" value={money(profile?.wallet_balance)} icon={Wallet}/><Stat title="Approved earnings" value={money(profile?.total_earned)} icon={CheckCircle2}/><Stat title="Pending" value={money(profile?.pending_earnings)} icon={Clock3}/></div><div className="section-head"><div><span className="eyebrow">HOW IT WORKS</span><h2>Three simple steps</h2></div></div><div className="steps"><Step n="01" title="Pick a task" text="Open a task posted by the admin and follow its requirements."/><Step n="02" title="Submit proof" text="Upload your own work or required image and send it for review."/><Step n="03" title="Get approved" text="After approval, the configured earning is added to your wallet." /></div></section>;
+  return <section className="content"><div className="hero-card"><div><span className="eyebrow">YOUR WALLET</span><div className="balance">{money(profile?.wallet_balance)}</div><p>Available balance</p></div><button className="light-btn" onClick={()=>setView('withdraw')}>Withdraw funds <ArrowDownToLine size={16}/></button></div><div className="grid3"><Stat title="Wallet" value={money(profile?.wallet_balance)} icon={Wallet}/><Stat title="Approved earnings" value={money(profile?.total_earned)} icon={CheckCircle2}/><Stat title="Pending" value={money(0)} icon={Clock3}/></div><div className="section-head"><div><span className="eyebrow">HOW IT WORKS</span><h2>Three simple steps</h2></div></div><div className="steps"><Step n="01" title="Pick a task" text="Open a task posted by the admin and follow its requirements."/><Step n="02" title="Submit proof" text="Upload your own work or required image and send it for review."/><Step n="03" title="Get approved" text="After approval, the configured earning is added to your wallet." /></div></section>;
 }
 function Stat({title,value,icon:Icon}) { return <div className="stat"><Icon size={19}/><span>{title}</span><b>{value}</b></div> }
 function Step({n,title,text}) { return <div className="step"><span>{n}</span><h3>{title}</h3><p>{text}</p></div> }
@@ -121,7 +121,7 @@ function Withdraw({profile}) {
 }
 function Admin() {
   const [tasks,setTasks]=useState([]); const [subs,setSubs]=useState([]); const [withdrawals,setWithdrawals]=useState([]); const [reward,setReward]=useState('50'); const [title,setTitle]=useState(''); const [desc,setDesc]=useState('');
-  async function load(){const [a,b,c]=await Promise.all([supabase.from('tasks').select('*').order('created_at',{ascending:false}),supabase.from('submissions').select('*, tasks(title, reward), profiles(name,email)').order('created_at',{ascending:false}),supabase.from('withdrawals').select('*, profiles(name,email)').order('created_at',{ascending:false})]);setTasks(a.data||[]);setSubs(b.data||[]);setWithdrawals(c.data||[])}
+  async function load(){const [a,b,c]=await Promise.all([supabase.from('tasks').select('*').order('created_at',{ascending:false}),supabase.from('submissions').select('*, tasks(title, reward), profiles(name)').order('created_at',{ascending:false}),supabase.from('withdrawals').select('*, profiles(name)').order('created_at',{ascending:false})]);setTasks(a.data||[]);setSubs(b.data||[]);setWithdrawals(c.data||[])}
   useEffect(()=>{load()},[]);
   async function addTask(e){e.preventDefault();await supabase.from('tasks').insert({title,description:desc,reward:Number(reward),submission_type:'image'});setTitle('');setDesc('');load()}
   async function approveSub(s){const task=s.tasks;const {error}=await supabase.rpc('approve_submission',{submission_id:s.id});if(error)alert(error.message);load()}
