@@ -1,12 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { createClient } from '@supabase/supabase-js';
 import App from './App';
 import './styles.css';
-
-const url = import.meta.env.VITE_SUPABASE_URL;
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
-export const supabase = url && key ? createClient(url, key) : null;
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
